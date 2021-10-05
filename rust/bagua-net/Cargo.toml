@@ -35,3 +35,4 @@ lazy_static = "1.4"
 regex = "1.5"
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
+console-subscriber = { path = "third-party/tokio-rs/console/console-subscriber" }

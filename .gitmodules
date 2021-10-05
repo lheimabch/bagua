@@ -2,3 +2,6 @@
 	path = rust/bagua-core/bagua-core-internal/third_party/Aluminum
 	url = https://github.com/BaguaSys/Aluminum.git
 	branch = bagua
+[submodule "rust/bagua-net/third-party/tokio-rs/console"]
+	path = rust/bagua-net/third-party/tokio-rs/console
+	url = https://github.com/tokio-rs/console.git
