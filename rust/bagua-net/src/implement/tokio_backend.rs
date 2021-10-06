@@ -594,6 +594,7 @@ impl interface::Net for BaguaNet {
             msg_sender: msg_sender,
         };
         self.tokio_rt.spawn(async move {
+            ctrl_stream.set_read_timeout(Some(std::time::Duration::from_secs(10))).unwrap();
             let mut ctrl_stream = tokio::net::TcpStream::from_std(ctrl_stream).unwrap();
             ctrl_stream.set_nodelay(true).unwrap();
             loop {
