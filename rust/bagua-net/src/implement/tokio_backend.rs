@@ -514,6 +514,9 @@ impl interface::Net for BaguaNet {
         }
         let ctrl_stream = ctrl_stream.unwrap();
 
+        let stream_ids: Vec<usize> = stream_vec.iter().map(|(id, _)| id.clone()).collect();
+        println!("stream_ids={:?}", stream_ids);
+
         let min_chunksize = self.min_chunksize;
         let (datapass_sender, mut datapass_receiver) =
             mpsc::unbounded_channel::<(&'static mut [u8], Arc<Mutex<RequestState>>)>();
