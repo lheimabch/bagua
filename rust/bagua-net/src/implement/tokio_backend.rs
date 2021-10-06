@@ -108,7 +108,7 @@ impl BaguaNet {
             .parse()
             .unwrap();
         TELEMETRY_INIT_ONCE.call_once(|| {
-            println!(format!("hello rank={}", rank));
+            println!("hello rank={}", rank);
             console_subscriber::init();
             println!("console_subscriber::init done");
 
