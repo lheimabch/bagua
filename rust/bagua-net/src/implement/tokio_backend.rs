@@ -472,6 +472,11 @@ impl interface::Net for BaguaNet {
                     ctrl_stream.peer_addr(),
                     data.len()
                 );
+                println!(
+                    "send to {:?} target_nbytes={}",
+                    ctrl_stream.peer_addr(),
+                    data.len()
+                );
 
                 datapass_sender.send((data, state)).unwrap();
             }
@@ -582,6 +587,11 @@ impl interface::Net for BaguaNet {
                 };
 
                 tracing::debug!(
+                    "{:?} recv target_nbytes={}",
+                    ctrl_stream.local_addr(),
+                    target_nbytes
+                );
+                println!(
                     "{:?} recv target_nbytes={}",
                     ctrl_stream.local_addr(),
                     target_nbytes
