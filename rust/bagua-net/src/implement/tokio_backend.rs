@@ -109,8 +109,10 @@ impl BaguaNet {
             .unwrap();
         TELEMETRY_INIT_ONCE.call_once(|| {
             println!("hello rank={}", rank);
-            console_subscriber::init();
-            println!("console_subscriber::init done");
+            if rank == 0 {
+                console_subscriber::init();
+                println!("console_subscriber::init done");
+            }
 
             if rank == -1 || rank > 7 {
                 return;
