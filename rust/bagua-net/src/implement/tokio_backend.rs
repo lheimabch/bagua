@@ -57,6 +57,19 @@ pub struct RequestState {
     pub completed_subtasks: usize,
     pub nbytes_transferred: usize,
     pub err: Option<BaguaNetError>,
+    pub start_time: std::time::SystemTime,
+}
+
+impl RequestState {
+    pub fn new() -> RequestState {
+        RequestState {
+            nsubtasks: 1,
+            completed_subtasks: 0,
+            nbytes_transferred: 0,
+            err: None,
+            start_time: std::time::SystemTime::now(),
+        }
+    }
 }
 
 pub enum SocketRequest {
@@ -551,7 +564,15 @@ impl interface::Net for BaguaNet {
 
                     datapass_fut.push(stream.read_exact(&mut chunk[..]));
                 }
-                futures::future::join_all(datapass_fut).await;
+                for ret in futures::future::join_all(datapass_fut).await {
+                    match ret {
+                        Ok(_) => {}
+                        Err(err) => {
+                            state.lock().unwrap().err = Some(BaguaNetError::IOError(format!("{:?}", err)));
+                            continue;
+                        }
+                    }
+                }
 
                 match state.lock() {
                     Ok(mut state) => {
@@ -627,12 +648,7 @@ impl interface::Net for BaguaNet {
         span.set_attribute(KeyValue::new("nbytes", data.len() as i64));
 
         self.socket_request_next_id += 1;
-        let task_state = Arc::new(Mutex::new(RequestState {
-            nsubtasks: 1,
-            completed_subtasks: 0,
-            nbytes_transferred: 0,
-            err: None,
-        }));
+        let task_state = Arc::new(Mutex::new(RequestState::new()));
         self.socket_request_map.insert(
             id,
             SocketRequest::SendRequest(SocketSendRequest {
@@ -662,12 +678,7 @@ impl interface::Net for BaguaNet {
         span.set_attribute(KeyValue::new("id", id as i64));
 
         self.socket_request_next_id += 1;
-        let task_state = Arc::new(Mutex::new(RequestState {
-            nsubtasks: 1,
-            completed_subtasks: 0,
-            nbytes_transferred: 0,
-            err: None,
-        }));
+        let task_state = Arc::new(Mutex::new(RequestState::new()));
         self.socket_request_map.insert(
             id,
             SocketRequest::RecvRequest(SocketRecvRequest {
@@ -691,6 +702,11 @@ impl interface::Net for BaguaNet {
                     return Err(err);
                 }
 
+                let dur = std::time::SystemTime::now().duration_since(state.start_time).unwrap().as_secs_f64();
+                if dur > 20. {
+                    println!("send request({}) dur={}", request_id, dur);
+                }
+
                 let task_completed = state.nsubtasks == state.completed_subtasks;
                 if task_completed {
                     send_req.trace_span.end();
@@ -701,6 +717,11 @@ impl interface::Net for BaguaNet {
                 let state = recv_req.state.lock().unwrap();
                 if let Some(err) = state.err.clone() {
                     return Err(err);
+                }
+
+                let dur = std::time::SystemTime::now().duration_since(state.start_time).unwrap().as_secs_f64();
+                if dur > 20. {
+                    println!("recv request({}) dur={}", request_id, dur);
                 }
 
                 let task_completed = state.nsubtasks == state.completed_subtasks;
