@@ -131,6 +131,7 @@ impl BaguaNet {
                 .unwrap();
 
             console_subscriber::init();
+            println!("console_subscriber::init done");
         });
 
         let tracer = opentelemetry::global::tracer("bagua-net");
