@@ -108,6 +108,10 @@ impl BaguaNet {
             .parse()
             .unwrap();
         TELEMETRY_INIT_ONCE.call_once(|| {
+            println!(format!("hello rank={}", rank));
+            console_subscriber::init();
+            println!("console_subscriber::init done");
+
             if rank == -1 || rank > 7 {
                 return;
             }
@@ -129,9 +133,6 @@ impl BaguaNet {
                 .with_service_name("bagua-net")
                 .install_batch(opentelemetry::runtime::AsyncStd)
                 .unwrap();
-
-            console_subscriber::init();
-            println!("console_subscriber::init done");
         });
 
         let tracer = opentelemetry::global::tracer("bagua-net");
