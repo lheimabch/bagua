@@ -129,6 +129,8 @@ impl BaguaNet {
                 .with_service_name("bagua-net")
                 .install_batch(opentelemetry::runtime::AsyncStd)
                 .unwrap();
+
+            console_subscriber::init();
         });
 
         let tracer = opentelemetry::global::tracer("bagua-net");
