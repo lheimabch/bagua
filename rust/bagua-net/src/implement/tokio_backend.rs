@@ -568,7 +568,8 @@ impl interface::Net for BaguaNet {
                     match ret {
                         Ok(_) => {}
                         Err(err) => {
-                            state.lock().unwrap().err = Some(BaguaNetError::IOError(format!("{:?}", err)));
+                            state.lock().unwrap().err =
+                                Some(BaguaNetError::IOError(format!("{:?}", err)));
                             continue;
                         }
                     }
@@ -601,7 +602,14 @@ impl interface::Net for BaguaNet {
                     None => break,
                 };
 
-                let target_nbytes = match ctrl_stream.read_u32().await {
+                // tokio::timer::Timeout(ctrl_stream.read_u32(), std::time::Duration::from_secs(10))
+                let target_nbytes = match tokio::time::timeout(
+                    std::time::Duration::from_secs(10),
+                    ctrl_stream.read_u32(),
+                )
+                .await
+                .unwrap()
+                {
                     Ok(n) => n as usize,
                     Err(err) => {
                         state.lock().unwrap().err =
@@ -702,7 +710,10 @@ impl interface::Net for BaguaNet {
                     return Err(err);
                 }
 
-                let dur = std::time::SystemTime::now().duration_since(state.start_time).unwrap().as_secs_f64();
+                let dur = std::time::SystemTime::now()
+                    .duration_since(state.start_time)
+                    .unwrap()
+                    .as_secs_f64();
                 if dur > 20. {
                     println!("send request({}) dur={}", request_id, dur);
                 }
@@ -719,7 +730,10 @@ impl interface::Net for BaguaNet {
                     return Err(err);
                 }
 
-                let dur = std::time::SystemTime::now().duration_since(state.start_time).unwrap().as_secs_f64();
+                let dur = std::time::SystemTime::now()
+                    .duration_since(state.start_time)
+                    .unwrap()
+                    .as_secs_f64();
                 if dur > 20. {
                     println!("recv request({}) dur={}", request_id, dur);
                 }
