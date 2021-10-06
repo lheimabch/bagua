@@ -608,10 +608,17 @@ impl interface::Net for BaguaNet {
                     ctrl_stream.read_u32(),
                 )
                 .await
-                .unwrap()
                 {
-                    Ok(n) => n as usize,
+                    Ok(ret) => match ret {
+                        Ok(n) => n as usize,
+                        Err(err) => {
+                            state.lock().unwrap().err =
+                                Some(BaguaNetError::IOError(format!("{:?}", err)));
+                            break;
+                        }
+                    },
                     Err(err) => {
+                        println!("!!!!!!!!!!!!!! err={}", err);
                         state.lock().unwrap().err =
                             Some(BaguaNetError::IOError(format!("{:?}", err)));
                         break;
@@ -710,13 +717,13 @@ impl interface::Net for BaguaNet {
                     return Err(err);
                 }
 
-                let dur = std::time::SystemTime::now()
-                    .duration_since(state.start_time)
-                    .unwrap()
-                    .as_secs_f64();
-                if dur > 20. {
-                    println!("send request({}) dur={}", request_id, dur);
-                }
+                // let dur = std::time::SystemTime::now()
+                //     .duration_since(state.start_time)
+                //     .unwrap()
+                //     .as_secs_f64();
+                // if dur > 20. {
+                //     println!("send request({}) dur={}", request_id, dur);
+                // }
 
                 let task_completed = state.nsubtasks == state.completed_subtasks;
                 if task_completed {
@@ -730,13 +737,13 @@ impl interface::Net for BaguaNet {
                     return Err(err);
                 }
 
-                let dur = std::time::SystemTime::now()
-                    .duration_since(state.start_time)
-                    .unwrap()
-                    .as_secs_f64();
-                if dur > 20. {
-                    println!("recv request({}) dur={}", request_id, dur);
-                }
+                // let dur = std::time::SystemTime::now()
+                //     .duration_since(state.start_time)
+                //     .unwrap()
+                //     .as_secs_f64();
+                // if dur > 20. {
+                //     println!("recv request({}) dur={}", request_id, dur);
+                // }
 
                 let task_completed = state.nsubtasks == state.completed_subtasks;
                 if task_completed {
