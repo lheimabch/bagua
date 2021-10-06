@@ -13,7 +13,7 @@ $(PLUGIN_SO): bagua_net.cc $(NCCL_NET_V4) $(NCCL_NET_V3) $(BAGUA_NET_LIB)
 	-L. -l:$(BAGUA_NET_LIB) -lz
 
 $(BAGUA_NET_LIB):
-	RUSTFLAGS="--cfg tokio_unstable" cargo build --release && cp ../target/release/$(BAGUA_NET_LIB) ./$(BAGUA_NET_LIB)
+	RUSTFLAGS="--cfg tokio_unstable" cargo build --debug && cp ../target/debug/$(BAGUA_NET_LIB) ./$(BAGUA_NET_LIB)
 
 test:
 	cargo test --verbose
