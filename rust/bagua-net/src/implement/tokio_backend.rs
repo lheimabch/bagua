@@ -18,6 +18,7 @@ use std::net;
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::mpsc;
+use futures::stream::{FuturesUnordered, StreamExt};
 
 const NCCL_PTR_HOST: i32 = 1;
 const NCCL_PTR_CUDA: i32 = 2;
@@ -413,7 +414,7 @@ impl interface::Net for BaguaNet {
                 let mut chunks =
                     data.chunks(utils::chunk_size(data.len(), min_chunksize, nstreams));
 
-                let mut datapass_fut = Vec::with_capacity(stream_vec.len());
+                let mut datapass_fut = FuturesUnordered::new();
                 for stream in stream_vec.iter_mut() {
                     let chunk = match chunks.next() {
                         Some(b) => b,
@@ -422,7 +423,17 @@ impl interface::Net for BaguaNet {
 
                     datapass_fut.push(stream.write_all(&chunk[..]));
                 }
-                futures::future::join_all(datapass_fut).await;
+                loop {
+                    match datapass_fut.next().await {
+                        Some(result) => {
+                            println!("    finished future [{:?}]", result);
+                        }
+                        None => {
+                            println!("Done!");
+                            break;
+                        }
+                    }
+                }
 
                 match state.lock() {
                     Ok(mut state) => {
@@ -579,7 +590,8 @@ impl interface::Net for BaguaNet {
 
                 let mut chunks =
                     data.chunks_mut(utils::chunk_size(data.len(), min_chunksize, nstreams));
-                let mut datapass_fut = Vec::with_capacity(stream_vec.len());
+
+                let mut datapass_fut = FuturesUnordered::new();
                 for stream in stream_vec.iter_mut() {
                     let chunk = match chunks.next() {
                         Some(b) => b,
@@ -588,8 +600,29 @@ impl interface::Net for BaguaNet {
 
                     datapass_fut.push(stream.read_exact(&mut chunk[..]));
                 }
-                let datapass_fut = futures::future::join_all(datapass_fut);
-                datapass_fut.await;
+                loop {
+                    match datapass_fut.next().await {
+                        Some(result) => {
+                            println!("    finished future [{:?}]", result);
+                        }
+                        None => {
+                            println!("Done!");
+                            break;
+                        }
+                    }
+                }
+
+                // let mut datapass_fut = Vec::with_capacity(stream_vec.len());
+                // for stream in stream_vec.iter_mut() {
+                //     let chunk = match chunks.next() {
+                //         Some(b) => b,
+                //         None => break,
+                //     };
+
+                //     datapass_fut.push(stream.read_exact(&mut chunk[..]));
+                // }
+                // let datapass_fut = futures::future::join_all(datapass_fut);
+                // datapass_fut.await;
                 // match tokio::time::timeout(std::time::Duration::from_secs(30), datapass_fut).await {
                 //     Ok(_) => {},
                 //     Err(err) => {
