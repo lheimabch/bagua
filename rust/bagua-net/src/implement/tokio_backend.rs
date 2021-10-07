@@ -656,7 +656,7 @@ impl interface::Net for BaguaNet {
                 //     }
                 // };
 
-                let target_nbytes = ctrl_stream.read_u32().await.unwrap();
+                let target_nbytes = ctrl_stream.read_u32().await.unwrap() as usize;
 
                 tracing::debug!(
                     "{:?} recv target_nbytes={}",
