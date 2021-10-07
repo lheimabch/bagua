@@ -472,14 +472,34 @@ impl interface::Net for BaguaNet {
                     None => break,
                 };
 
-                match ctrl_stream.write_u32(data.len() as u32).await {
-                    Ok(_) => {}
+                // match ctrl_stream.write_u32(data.len() as u32).await {
+                //     Ok(_) => {}
+                //     Err(err) => {
+                //         state.lock().unwrap().err =
+                //             Some(BaguaNetError::IOError(format!("{:?}", err)));
+                //         break;
+                //     }
+                // };
+
+                match tokio::time::timeout(
+                    std::time::Duration::from_secs(30),
+                    ctrl_stream.write_u32(data.len() as u32),
+                )
+                .await
+                {
+                    Ok(ret) => match ret {
+                        Ok(_) => {}
+                        Err(err) => {
+                            state.lock().unwrap().err =
+                                Some(BaguaNetError::IOError(format!("{:?}", err)));
+                            break;
+                        }
+                    },
                     Err(err) => {
-                        state.lock().unwrap().err =
-                            Some(BaguaNetError::IOError(format!("{:?}", err)));
-                        break;
+                        panic!("!!!!!!!!!!!!!! err={}", err);
                     }
                 };
+
                 tracing::debug!(
                     "send to {:?} target_nbytes={}",
                     ctrl_stream.peer_addr(),
@@ -605,7 +625,7 @@ impl interface::Net for BaguaNet {
 
                 // tokio::timer::Timeout(ctrl_stream.read_u32(), std::time::Duration::from_secs(10))
                 let target_nbytes = match tokio::time::timeout(
-                    std::time::Duration::from_secs(10),
+                    std::time::Duration::from_secs(30),
                     ctrl_stream.read_u32(),
                 )
                 .await
@@ -619,10 +639,7 @@ impl interface::Net for BaguaNet {
                         }
                     },
                     Err(err) => {
-                        println!("!!!!!!!!!!!!!! err={}", err);
-                        state.lock().unwrap().err =
-                            Some(BaguaNetError::IOError(format!("{:?}", err)));
-                        break;
+                        panic!("!!!!!!!!!!!!!! err={}", err);
                     }
                 };
 
