@@ -670,27 +670,27 @@ impl interface::Net for BaguaNet {
                     None => break,
                 };
 
-                // let target_nbytes = match tokio::time::timeout(
-                //     std::time::Duration::from_secs(30),
-                //     ctrl_stream.read_u32(),
-                // )
-                // .await
-                // {
-                //     Ok(ret) => match ret {
-                //         Ok(n) => n as usize,
-                //         Err(err) => {
-                //             state.lock().unwrap().err =
-                //                 Some(BaguaNetError::IOError(format!("{:?}", err)));
-                //             break;
-                //         }
-                //     },
-                //     Err(err) => {
-                //         println!("!!!!!!!!!!!!!! err={}", err);
-                //         panic!("!!!!!!!!!!!!!! err={}", err);
-                //     }
-                // };
+                let target_nbytes = match tokio::time::timeout(
+                    std::time::Duration::from_secs(30),
+                    ctrl_stream.read_u32(),
+                )
+                .await
+                {
+                    Ok(ret) => match ret {
+                        Ok(n) => n as usize,
+                        Err(err) => {
+                            state.lock().unwrap().err =
+                                Some(BaguaNetError::IOError(format!("{:?}", err)));
+                            break;
+                        }
+                    },
+                    Err(err) => {
+                        println!("!!!!!!!!!!!!!! err={}", err);
+                        panic!("!!!!!!!!!!!!!! err={}", err);
+                    }
+                };
 
-                let target_nbytes = ctrl_stream.read_u32().await.unwrap() as usize;
+                // let target_nbytes = ctrl_stream.read_u32().await.unwrap() as usize;
 
                 tracing::debug!(
                     "{:?} recv target_nbytes={}",
