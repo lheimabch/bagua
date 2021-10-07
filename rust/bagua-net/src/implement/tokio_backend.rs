@@ -109,6 +109,7 @@ pub struct BaguaNet {
     nstreams: usize,
     min_chunksize: usize,
     tokio_rt: tokio::runtime::Runtime,
+    debug_mode: bool,
 }
 
 impl BaguaNet {
@@ -283,6 +284,7 @@ impl BaguaNet {
                 .parse()
                 .unwrap(),
             tokio_rt: tokio_rt,
+            debug_mode: std::env::var("BAGUA_NET_DEBUG").unwrap_or("0".to_owned()) == "1",
         })
     }
 }
@@ -726,6 +728,14 @@ impl interface::Net for BaguaNet {
     }
 
     fn test(&mut self, request_id: SocketRequestID) -> Result<(bool, usize), BaguaNetError> {
+        if self.debug_mode {
+            let (send_pending, recv_pending) = self.socket_request_map.iter().map(|(_, req)| match req {
+                SocketRequest::SendRequest(_) => (1, 0),
+                SocketRequest::RecvRequest(_) => (0, 1),
+            }).fold((0, 0), |lhs, rhs| (lhs.0 + lhs.0, lhs.1 + rhs.1));
+            println!("send_pending={}, recv_pending={}", send_pending, recv_pending);
+        }
+
         *self.state.request_count.lock().unwrap() = self.socket_request_map.len();
         let request = self.socket_request_map.get_mut(&request_id).unwrap();
         let ret = match request {
