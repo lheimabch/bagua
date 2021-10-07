@@ -586,16 +586,23 @@ impl interface::Net for BaguaNet {
 
                     datapass_fut.push(stream.read_exact(&mut chunk[..]));
                 }
-                for ret in futures::future::join_all(datapass_fut).await {
-                    match ret {
-                        Ok(_) => {}
-                        Err(err) => {
-                            state.lock().unwrap().err =
-                                Some(BaguaNetError::IOError(format!("{:?}", err)));
-                            continue;
-                        }
+                let datapass_fut = futures::future::join_all(datapass_fut);
+                match tokio::time::timeout(std::time::Duration::from_secs(30), datapass_fut).await {
+                    Ok(_) => {},
+                    Err(err) => {
+                        panic!("{:?}", err);
                     }
                 }
+                // for ret in futures::future::join_all(datapass_fut).await {
+                //     match ret {
+                //         Ok(_) => {}
+                //         Err(err) => {
+                //             state.lock().unwrap().err =
+                //                 Some(BaguaNetError::IOError(format!("{:?}", err)));
+                //             continue;
+                //         }
+                //     }
+                // }
 
                 match state.lock() {
                     Ok(mut state) => {
