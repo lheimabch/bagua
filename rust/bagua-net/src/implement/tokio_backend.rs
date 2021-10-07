@@ -483,24 +483,26 @@ impl interface::Net for BaguaNet {
                 //     }
                 // };
 
-                match tokio::time::timeout(
-                    std::time::Duration::from_secs(30),
-                    ctrl_stream.write_u32(data.len() as u32),
-                )
-                .await
-                {
-                    Ok(ret) => match ret {
-                        Ok(_) => {}
-                        Err(err) => {
-                            state.lock().unwrap().err =
-                                Some(BaguaNetError::IOError(format!("{:?}", err)));
-                            break;
-                        }
-                    },
-                    Err(err) => {
-                        panic!("!!!!!!!!!!!!!! err={}", err);
-                    }
-                };
+                ctrl_stream.write_u32(data.len() as u32).await.unwrap();
+
+                // match tokio::time::timeout(
+                //     std::time::Duration::from_secs(30),
+                //     ctrl_stream.write_u32(data.len() as u32),
+                // )
+                // .await
+                // {
+                //     Ok(ret) => match ret {
+                //         Ok(_) => {}
+                //         Err(err) => {
+                //             state.lock().unwrap().err =
+                //                 Some(BaguaNetError::IOError(format!("{:?}", err)));
+                //             break;
+                //         }
+                //     },
+                //     Err(err) => {
+                //         panic!("!!!!!!!!!!!!!! err={}", err);
+                //     }
+                // };
 
                 tracing::debug!(
                     "send to {:?} target_nbytes={}",
@@ -587,13 +589,14 @@ impl interface::Net for BaguaNet {
                     datapass_fut.push(stream.read_exact(&mut chunk[..]));
                 }
                 let datapass_fut = futures::future::join_all(datapass_fut);
-                match tokio::time::timeout(std::time::Duration::from_secs(30), datapass_fut).await {
-                    Ok(_) => {},
-                    Err(err) => {
-                        println!("!!!!!!!!!!!!! {:?}", err);
-                        panic!("!!!!!!!!!!!!! {:?}", err);
-                    }
-                }
+                datapass_fut.await;
+                // match tokio::time::timeout(std::time::Duration::from_secs(30), datapass_fut).await {
+                //     Ok(_) => {},
+                //     Err(err) => {
+                //         println!("!!!!!!!!!!!!! {:?}", err);
+                //         panic!("!!!!!!!!!!!!! {:?}", err);
+                //     }
+                // }
                 // for ret in futures::future::join_all(datapass_fut).await {
                 //     match ret {
                 //         Ok(_) => {}
@@ -633,26 +636,27 @@ impl interface::Net for BaguaNet {
                     None => break,
                 };
 
-                // tokio::timer::Timeout(ctrl_stream.read_u32(), std::time::Duration::from_secs(10))
-                let target_nbytes = match tokio::time::timeout(
-                    std::time::Duration::from_secs(30),
-                    ctrl_stream.read_u32(),
-                )
-                .await
-                {
-                    Ok(ret) => match ret {
-                        Ok(n) => n as usize,
-                        Err(err) => {
-                            state.lock().unwrap().err =
-                                Some(BaguaNetError::IOError(format!("{:?}", err)));
-                            break;
-                        }
-                    },
-                    Err(err) => {
-                        println!("!!!!!!!!!!!!!! err={}", err);
-                        panic!("!!!!!!!!!!!!!! err={}", err);
-                    }
-                };
+                // let target_nbytes = match tokio::time::timeout(
+                //     std::time::Duration::from_secs(30),
+                //     ctrl_stream.read_u32(),
+                // )
+                // .await
+                // {
+                //     Ok(ret) => match ret {
+                //         Ok(n) => n as usize,
+                //         Err(err) => {
+                //             state.lock().unwrap().err =
+                //                 Some(BaguaNetError::IOError(format!("{:?}", err)));
+                //             break;
+                //         }
+                //     },
+                //     Err(err) => {
+                //         println!("!!!!!!!!!!!!!! err={}", err);
+                //         panic!("!!!!!!!!!!!!!! err={}", err);
+                //     }
+                // };
+
+                let target_nbytes = ctrl_stream.read_u32().await.unwrap();
 
                 tracing::debug!(
                     "{:?} recv target_nbytes={}",
