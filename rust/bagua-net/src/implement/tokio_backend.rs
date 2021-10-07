@@ -426,7 +426,7 @@ impl interface::Net for BaguaNet {
                 loop {
                     match datapass_fut.next().await {
                         Some(result) => {
-                            println!("    finished future [{:?}]", result);
+                            println!("    finished write_all future [{:?}]", result);
                         }
                         None => {
                             println!("Done!");
@@ -604,7 +604,7 @@ impl interface::Net for BaguaNet {
                 loop {
                     match datapass_fut.next().await {
                         Some(result) => {
-                            println!("    finished future [{:?}]", result);
+                            println!("    finished read_exact future [{:?}]", result);
                         }
                         None => {
                             println!("Done!");
