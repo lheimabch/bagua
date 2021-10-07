@@ -495,6 +495,7 @@ impl Net for BaguaNet {
                         if let Err(err) =
                             utils::nonblocking_read_exact(&mut ctrl_stream, &mut target_nbytes[..])
                         {
+                            panic!("{:?}", err);
                             state.lock().unwrap().err =
                                 Some(BaguaNetError::IOError(format!("{:?}", err)));
                             break;
