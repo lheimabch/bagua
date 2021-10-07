@@ -262,8 +262,6 @@ impl BaguaNet {
             Err(_) => tokio::runtime::Runtime::new().unwrap(),
         };
 
-        panic!("BAGUA_NET_DEBUG={}", std::env::var("BAGUA_NET_DEBUG").unwrap_or("0".to_owned()))
-
         Ok(Self {
             socket_devs: utils::find_interfaces(),
             listen_comm_next_id: 0,
@@ -736,6 +734,8 @@ impl interface::Net for BaguaNet {
                 SocketRequest::RecvRequest(_) => (0, 1),
             }).fold((0, 0), |lhs, rhs| (lhs.0 + lhs.0, lhs.1 + rhs.1));
             println!("send_pending={}, recv_pending={}", send_pending, recv_pending);
+        } else {
+            panic!("BAGUA_NET_DEBUG={}", std::env::var("BAGUA_NET_DEBUG").unwrap_or("0".to_owned()))
         }
 
         *self.state.request_count.lock().unwrap() = self.socket_request_map.len();
