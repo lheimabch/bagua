@@ -262,6 +262,8 @@ impl BaguaNet {
             Err(_) => tokio::runtime::Runtime::new().unwrap(),
         };
 
+        panic!("BAGUA_NET_DEBUG={}", std::env::var("BAGUA_NET_DEBUG").unwrap_or("0".to_owned()))
+
         Ok(Self {
             socket_devs: utils::find_interfaces(),
             listen_comm_next_id: 0,
