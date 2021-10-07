@@ -590,7 +590,8 @@ impl interface::Net for BaguaNet {
                 match tokio::time::timeout(std::time::Duration::from_secs(30), datapass_fut).await {
                     Ok(_) => {},
                     Err(err) => {
-                        panic!("{:?}", err);
+                        println!("!!!!!!!!!!!!! {:?}", err);
+                        panic!("!!!!!!!!!!!!! {:?}", err);
                     }
                 }
                 // for ret in futures::future::join_all(datapass_fut).await {
@@ -648,6 +649,7 @@ impl interface::Net for BaguaNet {
                         }
                     },
                     Err(err) => {
+                        println!("!!!!!!!!!!!!!! err={}", err);
                         panic!("!!!!!!!!!!!!!! err={}", err);
                     }
                 };
