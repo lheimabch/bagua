@@ -588,6 +588,7 @@ impl interface::Net for BaguaNet {
                     continue;
                 }
 
+                let data_nbytes = data.len();
                 let mut chunks =
                     data.chunks_mut(utils::chunk_size(data.len(), min_chunksize, nstreams));
 
@@ -644,7 +645,7 @@ impl interface::Net for BaguaNet {
                 match state.lock() {
                     Ok(mut state) => {
                         state.completed_subtasks += 1;
-                        state.nbytes_transferred += data.len();
+                        state.nbytes_transferred += data_nbytes;
                     }
                     Err(poisoned) => {
                         tracing::warn!("{:?}", poisoned);
