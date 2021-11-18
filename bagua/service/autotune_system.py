@@ -95,6 +95,7 @@ def autotune_system_hyperparameters(host_list, nproc_per_node, ssh_port):
         print(result)
         return result
 
+#Passes a dictionary of hyperparameters to be optimized as init values to the bayesion optimizer class.
     optim = BayesianOptimizer(
         {
             "NCCL_MIN_NCHANNELS": IntParam(

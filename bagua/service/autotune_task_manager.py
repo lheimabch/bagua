@@ -27,6 +27,7 @@ class AutotuneTaskManager:
         need_to_log: bool,
     ) -> None:
         self.task_name = task_name
+        #Record_deque keeps track of the train iteration, what hyperparamters were used and what the efficency of the system was under the given set of hyperparameters.
         self.record_deque = collections.deque(
             [
                 (
@@ -118,15 +119,18 @@ class AutotuneTaskManager:
 
         return buckets
 
+#Returns last Tuple of record_deque list
     def tail_record(self) -> Tuple[int, BaguaHyperparameter, float]:
         return self.record_deque[-1]
 
+#returns the best set of hyperparamters from the record.deque list by sorting the list by score and then returning the set of hyperparamters associated with that score.
     def best_hyperparameter(self) -> BaguaHyperparameter:
         return sorted(
             [(score, hp) for (_, hp, score) in self.record_deque],
             key=lambda pair: pair[0],
         )[-1][1]
 
+#Seems to report the efficency score a set of hyperparameters got by saving it into the record_deque list.
     def report_metrics(
         self,
         train_iter: int,
@@ -142,7 +146,10 @@ class AutotuneTaskManager:
                 system_efficiency_score,
             )
         )
-
+#Passes the last checked set of hyperparamters together with its efficency score to the bayesian optimizer. In this case
+#only optimizing for bucket size and is_hierarchical_reduce. Asks for a new set of hyperperparamters to be evaluated
+#which are likely also the one the optimizer deems most promising in terms of efficency score. Finally it returns this set
+#of hyperparamteres formated for further use.
     def ask_hyperparmeter(
         self,
         train_iter: int,

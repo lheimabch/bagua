@@ -46,8 +46,9 @@ class BayesianOptimizer:
         self.param_declaration = collections.OrderedDict(param_declaration)
         search_space = [
             declar.space_dimension for _, declar in self.param_declaration.items()
-        ]
+        ] #Returns a list of lower and upper bounds for each hyperparameter to search in.
 
+#Creates the "model" to optimize and fit the hyperparamters to.
         self.bayesian_optimizer = skopt.Optimizer(
             dimensions=search_space,
             n_initial_points=n_initial_points,
@@ -56,11 +57,12 @@ class BayesianOptimizer:
             random_state=random_state,
         )
 
+#Informs the bayesian optimizer about the objective function value that was asked about, for given values of hyperaparameters.
     def tell(self, param_dict: dict, score: float) -> None:
         param_v = [
             float(param_dict[name])
             for name, _ in self.param_declaration.items()  # noqa: E501
-        ]
+        ] 
         try:
             self.bayesian_optimizer.tell(param_v, -score)
         except ValueError as err:
@@ -70,6 +72,7 @@ class BayesianOptimizer:
                 )
             )
 
+#Return a dictionary with a value for each hyperparamter, at which the objective funciton should be evaluated at.
     def ask(self) -> dict:
         param_v = self.bayesian_optimizer.ask()
         param_dict = {}
